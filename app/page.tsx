@@ -1,6 +1,6 @@
 'use client';
 
-import { Search, ShoppingCart, User, ChevronDown, ArrowRight, Menu, X } from 'lucide-react';
+import { Search, ShoppingCart, User, ChevronDown, ArrowRight, Menu, X, Heart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
@@ -8,9 +8,24 @@ import { products, featuredProducts, bestsellerProducts } from '@/lib/mock-data'
 import { Carousel } from '@/components/carousel';
 import { carouselImages } from '@/lib/carousel-data';
 import { ProductSection } from '@/components/product-section';
+import { useCart } from '@/contexts/cart-context';
+import { useWishlist } from '@/contexts/wishlist-context';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Home() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const { getCartCount, getCartTotal, addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/shop?q=${encodeURIComponent(searchQuery)}`);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -43,7 +58,7 @@ export default function Home() {
           </div>
 
           <div className="flex items-center justify-between py-3 sm:py-4">
-            <div className="flex items-center gap-2">
+            <Link href="/" className="flex items-center gap-2">
               <div className="w-8 sm:w-10 h-8 sm:h-10 bg-yellow-400 rounded-lg flex items-center justify-center flex-shrink-0">
                 <ShoppingCart className="w-4 sm:w-6 h-4 sm:h-6 text-gray-800" />
               </div>
@@ -51,7 +66,7 @@ export default function Home() {
                 <span className="text-lg sm:text-2xl font-bold text-[#3b4d9c]">bacola</span>
                 <p className="text-xs text-gray-500 hidden sm:block">Online Grocery Shopping Center</p>
               </div>
-            </div>
+            </Link>
 
             <div className="hidden md:flex items-center gap-2 lg:gap-4 flex-1 max-w-2xl mx-4">
               <div className="relative w-32 lg:w-auto">
@@ -61,23 +76,29 @@ export default function Home() {
                 </select>
               </div>
 
-              <div className="relative flex-1">
+              <form onSubmit={handleSearch} className="relative flex-1">
                 <Input
                   type="text"
-                  placeholder="Search..."
+                  placeholder="Search for products..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   className="w-full pr-8 text-sm"
                 />
-                <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              </div>
+                <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
+                  <Search className="w-4 h-4 text-gray-400" />
+                </button>
+              </form>
             </div>
 
             <div className="flex items-center gap-2 sm:gap-4">
               <User className="w-5 sm:w-6 h-5 sm:h-6 text-gray-600 hidden sm:block" />
               <div className="flex items-center gap-1 sm:gap-2">
-                <span className="font-semibold text-sm hidden sm:inline">$0.00</span>
-                <div className="relative">
+                <span className="font-semibold text-sm hidden sm:inline">${getCartTotal().toFixed(2)}</span>
+                <div className="relative cursor-pointer">
                   <ShoppingCart className="w-5 sm:w-6 h-5 sm:h-6 text-gray-600" />
-                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs">0</span>
+                  <span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full w-4 h-4 sm:w-5 sm:h-5 flex items-center justify-center text-[10px] sm:text-xs">
+                    {getCartCount()}
+                  </span>
                 </div>
               </div>
               <button className="md:hidden" onClick={() => setMobileMenuOpen(!mobileMenuOpen)}>
@@ -89,14 +110,18 @@ export default function Home() {
           {mobileMenuOpen && (
             <div className="md:hidden pb-4 border-t">
               <div className="mt-4 space-y-2">
-                <div className="relative flex-1">
+                <form onSubmit={handleSearch} className="relative flex-1">
                   <Input
                     type="text"
                     placeholder="Search products..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                     className="w-full pr-8 text-sm"
                   />
-                  <Search className="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                </div>
+                  <button type="submit" className="absolute right-2 top-1/2 -translate-y-1/2">
+                    <Search className="w-4 h-4 text-gray-400" />
+                  </button>
+                </form>
                 <a href="#" className="block text-gray-600 hover:text-gray-900 py-2">About Us</a>
                 <a href="#" className="block text-gray-600 hover:text-gray-900 py-2">My account</a>
                 <a href="#" className="block text-gray-600 hover:text-gray-900 py-2">Wishlist</a>
@@ -116,12 +141,12 @@ export default function Home() {
             </Button>
 
             <div className="hidden lg:flex items-center gap-4 lg:gap-8">
-              <a href="#" className="flex items-center gap-1 text-gray-700 hover:text-[#00bcd4] whitespace-nowrap text-sm">
+              <Link href="/" className="flex items-center gap-1 text-gray-700 hover:text-[#00bcd4] whitespace-nowrap text-sm">
                 HOME <ChevronDown className="w-4 h-4" />
-              </a>
-              <a href="#" className="flex items-center gap-1 text-gray-700 hover:text-[#00bcd4] whitespace-nowrap text-sm">
+              </Link>
+              <Link href="/shop" className="flex items-center gap-1 text-gray-700 hover:text-[#00bcd4] whitespace-nowrap text-sm">
                 SHOP <ChevronDown className="w-4 h-4" />
-              </a>
+              </Link>
               <a href="#" className="flex items-center gap-1 text-gray-700 hover:text-[#00bcd4] whitespace-nowrap text-sm">
                 🍖 MEATS & SEAFOOD
               </a>
@@ -136,7 +161,7 @@ export default function Home() {
             </div>
 
             <div className="flex lg:hidden gap-2 ml-auto flex-nowrap">
-              <a href="#" className="text-gray-700 hover:text-[#00bcd4] text-xs whitespace-nowrap">SHOP</a>
+              <Link href="/shop" className="text-gray-700 hover:text-[#00bcd4] text-xs whitespace-nowrap">SHOP</Link>
               <a href="#" className="text-gray-700 hover:text-[#00bcd4] text-xs whitespace-nowrap">BLOG</a>
             </div>
           </div>
@@ -249,17 +274,10 @@ export default function Home() {
               {products.slice(0, 5).map((product) => (
                 <ProductCard
                   key={product.id}
-                  discount={product.discount}
-                  badge={product.badge}
-                  badgeColor={product.badgeColor}
-                  image={product.image}
-                  originalPrice={product.originalPrice}
-                  price={product.price}
-                  title={product.title}
-                  stock={product.stock}
-                  rating={product.rating}
-                  available={product.available}
-                  weight={product.weight}
+                  product={product}
+                  onAddToCart={addToCart}
+                  onToggleWishlist={toggleWishlist}
+                  isInWishlist={isInWishlist(product.id)}
                 />
               ))}
             </div>
@@ -285,70 +303,72 @@ export default function Home() {
 }
 
 function ProductCard({
-  discount,
-  badge,
-  badgeColor,
-  image,
-  originalPrice,
-  price,
-  title,
-  stock,
-  rating,
-  available,
-  weight
+  product,
+  onAddToCart,
+  onToggleWishlist,
+  isInWishlist,
 }: {
-  discount: string;
-  badge?: string;
-  badgeColor?: string;
-  image: string;
-  originalPrice: string;
-  price: string;
-  title: string;
-  stock: string;
-  rating: number;
-  available: number;
-  weight?: string;
+  product: any;
+  onAddToCart: (product: any) => void;
+  onToggleWishlist: (product: any) => void;
+  isInWishlist: boolean;
 }) {
   return (
     <div className="bg-white rounded-lg p-2 sm:p-4 relative group hover:shadow-lg transition-shadow">
       <div className="absolute top-1 sm:top-2 left-1 sm:left-2 z-10">
         <div className="bg-[#00bcd4] text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
-          {discount}
+          {product.discount}
         </div>
       </div>
-      {badge && (
-        <div className={`absolute top-7 sm:top-12 left-1 sm:left-2 z-10 ${badgeColor} text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded`}>
-          {badge}
+      {product.badge && (
+        <div className={`absolute top-7 sm:top-12 left-1 sm:left-2 z-10 ${product.badgeColor} text-white text-[10px] sm:text-xs font-bold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded`}>
+          {product.badge}
         </div>
       )}
 
-      <div className="aspect-square bg-gray-100 rounded-lg mb-2 sm:mb-4 flex items-center justify-center">
-        <div className="w-20 sm:w-32 h-20 sm:h-32 bg-gray-200 rounded"></div>
+      <button
+        onClick={() => onToggleWishlist(product)}
+        className="absolute top-1 sm:top-2 right-1 sm:right-2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50"
+      >
+        <Heart
+          className={`w-3 h-3 sm:w-4 sm:h-4 ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
+        />
+      </button>
+
+      <div className="aspect-square bg-gray-100 rounded-lg mb-2 sm:mb-4 flex items-center justify-center overflow-hidden">
+        <img
+          src={product.image}
+          alt={product.title}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = 'https://images.pexels.com/photos/3962286/pexels-photo-3962286.jpeg?auto=compress&cs=tinysrgb&w=400';
+          }}
+        />
       </div>
 
       <div className="space-y-1 sm:space-y-2">
         <div className="flex items-baseline gap-1 sm:gap-2">
-          <span className="text-gray-400 line-through text-xs sm:text-sm">{originalPrice}</span>
-          <span className="text-lg sm:text-2xl font-bold text-[#e91e63]">{price}</span>
+          <span className="text-gray-400 line-through text-xs sm:text-sm">{product.originalPrice}</span>
+          <span className="text-lg sm:text-2xl font-bold text-[#e91e63]">{product.price}</span>
         </div>
 
         <h3 className="text-xs sm:text-sm font-medium text-gray-900 line-clamp-2 min-h-[32px] sm:min-h-[40px]">
-          {title}
+          {product.title}
         </h3>
 
-        {weight && <p className="text-[10px] sm:text-xs text-gray-500">{weight}</p>}
+        {product.weight && <p className="text-[10px] sm:text-xs text-gray-500">{product.weight}</p>}
 
         <div className="flex items-center gap-1 mb-1 sm:mb-2">
           <span className="text-[10px] sm:text-xs font-semibold text-[#00c853] bg-green-50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">
-            {stock}
+            {product.stock}
           </span>
         </div>
 
         <div className="flex items-center gap-0.5 mb-1 sm:mb-2">
           {[...Array(5)].map((_, i) => (
-            <span key={i} className="text-yellow-400 text-xs sm:text-sm">★</span>
+            <span key={i} className={`text-yellow-400 text-xs sm:text-sm ${i < product.rating ? '' : 'opacity-30'}`}>★</span>
           ))}
-          <span className="text-[10px] sm:text-xs text-gray-500 ml-1">{rating}</span>
+          <span className="text-[10px] sm:text-xs text-gray-500 ml-1">{product.rating}</span>
         </div>
 
         <div className="relative">
@@ -360,9 +380,16 @@ function ProductCard({
           </div>
         </div>
 
-        <p className="text-[10px] sm:text-xs text-gray-500">
-          the available products: <span className="font-bold text-gray-900">{available}</span>
+        <p className="text-[10px] sm:text-xs text-gray-500 mb-2">
+          the available products: <span className="font-bold text-gray-900">{product.available}</span>
         </p>
+
+        <button
+          onClick={() => onAddToCart(product)}
+          className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-1.5 sm:py-2 rounded-full text-xs sm:text-sm transition-colors"
+        >
+          Add to cart
+        </button>
       </div>
     </div>
   );

@@ -1,9 +1,11 @@
 'use client';
 
-import { ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ArrowRight, Heart } from 'lucide-react';
 import { useState } from 'react';
 import { Product } from '@/lib/mock-data';
 import { Button } from '@/components/ui/button';
+import { useCart } from '@/contexts/cart-context';
+import { useWishlist } from '@/contexts/wishlist-context';
 
 interface ProductSectionProps {
   title: string;
@@ -19,6 +21,8 @@ export function ProductSection({
   onViewAll,
 }: ProductSectionProps) {
   const [scrollPos, setScrollPos] = useState(0);
+  const { addToCart } = useCart();
+  const { toggleWishlist, isInWishlist } = useWishlist();
 
   const scroll = (direction: 'left' | 'right') => {
     const container = document.getElementById(`product-scroll-${title}`);
@@ -80,6 +84,14 @@ export function ProductSection({
                       {product.discount}
                     </span>
                   </div>
+                  <button
+                    onClick={() => toggleWishlist(product)}
+                    className="absolute top-2 right-2 z-10 w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-white shadow-md flex items-center justify-center hover:bg-gray-50"
+                  >
+                    <Heart
+                      className={`w-3 h-3 sm:w-4 sm:h-4 ${isInWishlist(product.id) ? 'fill-red-500 text-red-500' : 'text-gray-400'}`}
+                    />
+                  </button>
                 </div>
 
                 <h3 className="text-xs sm:text-sm font-medium text-gray-900 line-clamp-2 mb-2 sm:mb-3 flex-grow">
@@ -117,7 +129,10 @@ export function ProductSection({
                   </span>
                 </div>
 
-                <button className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 sm:py-2.5 rounded-full text-xs sm:text-sm transition-colors">
+                <button
+                  onClick={() => addToCart(product)}
+                  className="w-full bg-yellow-400 hover:bg-yellow-500 text-gray-900 font-bold py-2 sm:py-2.5 rounded-full text-xs sm:text-sm transition-colors"
+                >
                   Add to cart
                 </button>
               </div>
